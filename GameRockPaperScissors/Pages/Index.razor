@@ -1,0 +1,98 @@
+﻿@page "/"
+@using System.Timers
+@using GameRockPaperScissors.Game
+@implements IDisposable
+
+<h1>Rock paper and scissors</h1>
+
+@if (message != null)
+{
+    <p>@message</p>
+
+}
+
+<div>
+    <button type="button" class="btn btn-primary" @onclick="StartGame">Play</button>
+</div>
+
+<br>
+
+<div>
+    <img style="width:120px; height:120px;" src="@opponentHand.ImageUrl" alt="Alternate Text" />
+</div>
+
+
+<h1>Choose one variant</h1>
+
+<div class="row">
+
+    @foreach (var hand in hands)
+    {
+        <div class="col">
+            <img style="width:120px; height:120px;" src="@hand.ImageUrl" alt="Alternate Text" />
+            <button type="button" class="btn btn-info" @onclick="@(() => SelectHand(hand))">Select</button>
+        </div>
+
+    }
+
+</div>
+
+
+
+@code{
+
+    List<Hand> hands = new List<Hand>()
+{
+        new Hand() { Selection = RockPaperScissors.Paper, LoseAgainst = RockPaperScissors.Scissor, WinAgainst = RockPaperScissors.Rock, ImageUrl = "img/paper.jpg"},
+        new Hand() { Selection = RockPaperScissors.Scissor, LoseAgainst = RockPaperScissors.Rock, WinAgainst = RockPaperScissors.Paper, ImageUrl = "img/scissors.jpg" },
+        new Hand() { Selection = RockPaperScissors.Rock, LoseAgainst = RockPaperScissors.Paper, WinAgainst = RockPaperScissors.Scissor, ImageUrl = "img/rock.jpg"},
+    };
+
+    Hand opponentHand;
+    Timer timer;
+
+    private string message = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        opponentHand = hands[0];
+        timer = new Timer();
+    }
+
+    public void StartGame()
+    {
+        timer.Stop();
+        message = string.Empty;
+        opponentHand = hands[0];
+        timer.Interval = 50;
+        timer.Elapsed += ChangeHands;
+        timer.Start();
+
+    }
+
+    private void ChangeHands(object sender, ElapsedEventArgs e)
+    {
+        var random = new Random();
+        var index = random.Next(0, 3);
+        Console.WriteLine($"The random number is {index}");
+        opponentHand = hands[index];
+        StateHasChanged();
+    }
+
+    private void SelectHand(Hand hand)
+    {
+        timer.Stop();
+        var result = hand.PlayAgainst(opponentHand);
+        message = result.ToString();
+
+    }
+
+    public void Dispose()
+    {
+        if (timer != null)
+        {
+            timer.Dispose();
+        }
+    }
+
+}
